@@ -4,7 +4,7 @@ include "root" {
 }
 
 dependency "s3_media" {
-  config_path = "../../../dev/eu-north-1/s3_media"
+  config_path = "../s3_media"
 }
 
 terraform {
@@ -12,6 +12,8 @@ terraform {
 }
 
 inputs = {
+  environment = "prod"
+
   parameters = {
     s3_media = dependency.s3_media.outputs.bucket_id
   }

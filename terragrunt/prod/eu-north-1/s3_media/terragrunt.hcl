@@ -8,6 +8,6 @@ terraform {
 }
 
 inputs = {
-  bucket_name_prefix = "${include.root.locals.account_vars.locals.account_name}-${include.root.locals.organization.name}-media"
+  bucket_name = "prod-floci-lab-media"
   enable_versioning = true
 }

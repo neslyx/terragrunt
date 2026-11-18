@@ -1,63 +1,72 @@
 locals {
-  # Specify organization variables
   organization = {
-    name: "",
+    name = "floci-lab"
   }
 
-  # Automatically load account-level variables
   account_vars = read_terragrunt_config(find_in_parent_folders("account.hcl"))
+  region_vars  = read_terragrunt_config(find_in_parent_folders("region.hcl"))
 
-  # Automatically load region-level variables
-  region_vars = read_terragrunt_config(find_in_parent_folders("region.hcl"))
-
-  # Extract the variables
   account_name = local.account_vars.locals.account_name
   account_id   = local.account_vars.locals.account_id
-  region   = local.region_vars.locals.region
-
-  profile_name = "${local.organization.name}-${local.account_name}"
+  region       = local.region_vars.locals.region
 }
 
-# Generate an AWS provider block
 generate "provider" {
   path      = "provider.tf"
   if_exists = "overwrite_terragrunt"
-  contents  = <<EOF
-    provider "aws" {
-      region = "${local.region}"
 
-      profile = "${local.profile_name}"
+  contents = <<EOF
+provider "aws" {
+  region     = "${local.region}"
+  access_key = "test"
+  secret_key = "test"
 
-      allowed_account_ids = ["${local.account_id}"]
+  skip_credentials_validation = true
+  skip_metadata_api_check     = true
+  skip_requesting_account_id  = true
+  s3_use_path_style           = true
 
-      default_tags {
-        tags = {
-          Env       = "${local.account_name}",
-          ManagedBy = "Terragrunt"
-        }
-      }
+  endpoints {
+    s3       = "http://localhost:4566"
+    ssm      = "http://localhost:4566"
+    dynamodb = "http://localhost:4566"
+    sts      = "http://localhost:4566"
+  }
+
+  default_tags {
+    tags = {
+      Env       = "${local.account_name}"
+      ManagedBy = "Terragrunt"
     }
-  EOF
+  }
+}
+EOF
 }
 
-# Automatically store tfstate files in an S3 bucket
 remote_state {
   backend = "s3"
+
   config = {
-    profile        = local.profile_name
-    encrypt        = true
-    bucket         = "tfstate-${local.organization.name}-${local.account_name}-${local.region}"
-    key            = "${path_relative_to_include()}/terraform.tfstate"
-    region         = local.region
-    dynamodb_table = "tfstate-lock-${local.organization.name}-${local.account_name}-${local.region}"
-  }
-  generate = {
-    path      = "backend.tf"
-    if_exists = "overwrite_terragrunt"
+    bucket = "terraform-state"
+    key    = "${path_relative_to_include()}/terraform.tfstate"
+    region = "eu-north-1"
+
+    endpoint         = "http://localhost:4566"
+    dynamodb_endpoint = "http://localhost:4566"
+    dynamodb_table   = "dlock"
+
+    access_key = "test"
+    secret_key = "test"
+
+    skip_credentials_validation = true
+    skip_region_validation      = true
+    skip_metadata_api_check     = true
+    skip_requesting_account_id  = true
+    use_path_style              = true
+    encrypt                     = false
   }
 }
 
-# Configure root level variables that all resources can inherit
 inputs = merge(
   local.organization,
   local.account_vars.locals,

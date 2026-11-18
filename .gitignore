@@ -7,3 +7,8 @@ terragrunt-debug.tfvars.json
 
 .DS_Store
 .vscode
+
+.terraform/
+.terragrunt-cache/
+*.tfstate
+*.tfstate.*

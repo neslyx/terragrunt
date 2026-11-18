@@ -4,3 +4,7 @@ variable "parameters" {
   type        = map(string)
 }
 
+variable "environment" {
+  description = "Deployment environment"
+  type        = string
+}

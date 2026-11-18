@@ -1,2 +1,5 @@
-# terragrunt
-# terragrunt
+Вся конфигурация настроена для рабоы черезе Floci
+
+Floci - эмулятор aws
+
+Привет.
